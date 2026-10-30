@@ -233,9 +233,10 @@ class TestSummarizeTrajectories:
     def test_declining_direction(self, declining_hospital_visits):
         trajs = build_place_trajectories(declining_hospital_visits)
         result = summarize_trajectories(trajs)
-        # slope is negative but may be within stable threshold - check it's not improving
-        assert result['hospital']['trend_direction'] in ('declining', 'stable')
-        assert result['hospital']['trend_slope'] <= 0
+        # Hope and Connectedness fall while the other dimensions stay flat
+        assert result['hospital']['trend_direction'] == 'declining'
+        assert result['hospital']['dominant_trend'] == 'Hope'
+        assert result['hospital']['trend_slope'] == pytest.approx(-0.1)
 
     def test_stable_direction(self):
         visits = [make_visit('park', i, hope=0.7, connectedness=0.6) for i in range(3)]

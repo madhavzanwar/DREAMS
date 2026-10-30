@@ -163,7 +163,8 @@ def summarize_trajectories(
 
     For each place type, returns:
     - visit_count
-    - dominant_trend: dimension improving most
+    - dominant_trend: dimension improving most, or, when nothing is improving
+      and some dimension is declining, the dimension declining most
     - trend_slope: slope of dominant dimension
     - trend_direction: 'improving', 'stable', or 'declining'
     - volatility
@@ -180,10 +181,15 @@ def summarize_trajectories(
 
         if best_slope > TREND_THRESHOLD:
             direction = 'improving'
-        elif best_slope < -TREND_THRESHOLD:
-            direction = 'declining'
         else:
-            direction = 'stable'
+            # The best slope is the maximum, so it only turns negative when every
+            # dimension declines. Look at the steepest decline instead.
+            worst_dim = min(traj.trend, key=traj.trend.get, default=None)
+            if worst_dim is not None and traj.trend[worst_dim] < -TREND_THRESHOLD:
+                direction = 'declining'
+                best_dim, best_slope = worst_dim, traj.trend[worst_dim]
+            else:
+                direction = 'stable'
 
         summary[place_type] = {
             'visit_count': traj.visit_count,
