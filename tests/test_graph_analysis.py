@@ -205,6 +205,22 @@ class TestNodeMetrics:
         assert betweenness[1] >= betweenness[0]
         assert betweenness[1] >= betweenness[2]
 
+    def test_betweenness_treats_smaller_gaps_as_shorter_paths(self, base_time):
+        """With a wide threshold every pair is linked; the middle episode
+        is the shortest route between the outer two (1h + 1h gaps vs a 3h
+        direct gap), so it must have non-zero betweenness."""
+        eps = [
+            Episode(start_time=base_time + timedelta(hours=h),
+                    end_time=base_time + timedelta(hours=h + 1), events=())
+            for h in (0, 2, 4)
+        ]
+        result = analyze_narrative_graph(
+            build_narrative_graph(eps, adjacency_threshold=timedelta(hours=4))
+        )
+        betweenness = [n["betweenness_centrality"] for n in result["node_metrics"]]
+        assert betweenness[1] > 0
+        assert betweenness[0] == 0 and betweenness[2] == 0
+
     def test_emotion_label_derived_from_majority(self, base_time):
         ep = make_episode(base_time, 0, 2, ["negative", "negative", "positive"])
         result = analyze_narrative_graph(build_narrative_graph([ep]))

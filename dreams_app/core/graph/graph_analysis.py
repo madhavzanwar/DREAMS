@@ -128,7 +128,12 @@ def _compute_node_metrics(G: nx.DiGraph) -> List[Dict[str, Any]]:
     degree_cent = nx.degree_centrality(G)
     in_degree_cent = nx.in_degree_centrality(G)
     out_degree_cent = nx.out_degree_centrality(G)
-    betweenness_cent = nx.betweenness_centrality(G, weight='weight')
+    # Edge weight is a connection strength (1.0 = strongest), but networkx
+    # treats the weight as a distance. Use 1 - weight so that shorter
+    # temporal gaps count as shorter paths.
+    for _, _, attrs in G.edges(data=True):
+        attrs["distance"] = 1.0 - attrs.get("weight", 1.0)
+    betweenness_cent = nx.betweenness_centrality(G, weight='distance')
 
     metrics: List[Dict[str, Any]] = []
     for i in sorted(G.nodes()):
