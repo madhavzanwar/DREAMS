@@ -183,3 +183,28 @@ class TestTimeGaps:
         gaps = timeline.time_gaps()
         
         assert gaps == ()
+
+
+class TestExporters:
+    """Test the timeline export helpers."""
+
+    def test_exporters_module_imports_and_exports_rows(self):
+        """exporters must be importable and export one CSV row per event."""
+        from dreams_app.app.exporters import (
+            timeline_to_csv_rows,
+            timeline_events_summary,
+        )
+        events = (
+            EmotionEvent(datetime(2024, 12, 1, 8, 0, 0), 'joy', score=0.8),
+            EmotionEvent(datetime(2024, 12, 1, 9, 0, 0), 'sadness'),
+        )
+        timeline = EmotionTimeline('person_01', events)
+
+        rows = timeline_to_csv_rows(timeline)
+        assert [r['emotion_label'] for r in rows] == ['joy', 'sadness']
+        assert rows[0]['timestamp'] == '2024-12-01T08:00:00'
+        assert rows[0]['subject_id'] == 'person_01'
+
+        summary = timeline_events_summary(timeline)
+        assert summary['event_count'] == 2
+        assert summary['time_span_seconds'] == 3600.0

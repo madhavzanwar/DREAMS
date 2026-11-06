@@ -8,7 +8,7 @@ This module provides additional specialized export formats.
 """
 
 from typing import Dict, List, Any
-from ..analytics.emotion_timeline import EmotionTimeline
+from dreams_app.core.graph.emotion_timeline import EmotionTimeline
 
 
 def timeline_to_csv_rows(timeline: EmotionTimeline) -> List[Dict[str, Any]]:
