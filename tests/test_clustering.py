@@ -84,3 +84,23 @@ def test_user_is_skipped_when_keywords_cannot_be_embedded(monkeypatch):
     clustering.cluster_keywords_for_all_users(collection)
 
     collection.update_one.assert_not_called()
+
+
+def test_keyword_extraction_strips_blip_artifacts_before_parsing(monkeypatch):
+    from dreams_app.core.extra import keywords
+
+    seen = []
+
+    def fake_nlp(text):
+        seen.append(text)
+        return MagicMock(ents=[], noun_chunks=[], __iter__=lambda self: iter([]))
+
+    monkeypatch.setattr(keywords, '_get_nlp', lambda: fake_nlp)
+    monkeypatch.setattr(keywords, '_get_keyword_model', lambda: MagicMock())
+
+    keywords.extract_keywords_and_vectors('Arafed man standing in front of a church')
+    assert seen == ['man standing in front of a church']
+
+    seen.clear()
+    assert keywords.extract_keywords_and_vectors('arafed araflane') == []
+    assert seen == []
