@@ -31,7 +31,10 @@ def _clean_text(text: str) -> str:
         r'\U0001F680-\U0001F6FF'     # transport & map
         r'\U0001F1E0-\U0001F1FF'     # flags
         r'\U00002702-\U000027B0'
-        r'\U000024C2-\U0001F251'
+        r'\U000024C2\U000025A0-\U000025FF'
+        r'\U00002600-\U000026FF'
+        r'\U00002B00-\U00002BFF'
+        r'\U0001F000-\U0001F251'
         r'\U0000200d'                # zero-width joiner
         r'\U0000fe0f]+', ' ', text)
     # Remove hashtags but keep the word
