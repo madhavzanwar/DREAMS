@@ -49,6 +49,13 @@ Validate whether multi-dimensional place proximity predicts emotional similarity
 - Documented the generator and synthetic-data scope limitations in `research/proximity_validation/README.md` (`## Synthetic data`).
 - Added 8 deterministic tests in `tests/research_proximity/test_generate.py`.
 - Formatted with `black`, ran `flake8 research/ tests/research_proximity/ --count --max-complexity=10 --max-line-length=127 --statistics` (`0` issues), ran `pytest tests/research_proximity/ -v` -> **`13 passed in 0.35s`** (`8` new + `5` baseline), and benchmarked default `generate_dataset(GeneratorConfig(), seed=42)`: `places=60, visits=348, elapsed=0.0131s`.
+- Implemented proximity dimension module (`research/proximity_validation/distances.py`) with pure validated functions returning `[0, 1]` and matrix helpers `pairwise_matrix` / `pairwise_dimension_matrices`:
+  - `geographic_proximity`: Haversine via `dreams_app.location_proximity.calculate_distance` + `dreams_app.core.extra.proximity_calculator.normalize_geographic_distance`.
+  - `category_tree_similarity`: Wu-Palmer similarity over `generate.TAXONOMY_NODES` (`1.0` same type > `0.5` same group > `0.0` different group), explicitly contrasted with the repo's 3-pair `categorical_proximity`.
+  - `semantic_name_similarity`: place-name cosine similarity supporting `backend='auto' | 'tfidf' | 'sentence_transformers'` with deterministic char 3-gram TF-IDF fallback (`TfidfVectorizer(analyzer='char_wb', ngram_range=(3, 3))`).
+  - `linguistic_proximity` & `cultural_proximity`: reuse `linguistic_similarity` and `cultural_similarity` from `dreams_app.core.extra.proximity_calculator`.
+  - `composite_similarity`: combines any subset of dimensions and renormalizes over active dimensions identically to `composite_proximity` (reproduced exactly across 6 pairs under `REPO_DEFAULT_WEIGHTS`).
+- Added 12 deterministic tests in `tests/research_proximity/test_distances.py` (using `backend='tfidf'` / fallback), formatted with `black`, verified `flake8` returned `0`, and ran `pytest tests/research_proximity/ -v` -> **`25 passed in 0.42s`** (`12` in `test_distances.py`, `8` in `test_generate.py`, `5` in `test_baseline.py`).
 
 ## Open Questions
 - Are `wordcloud`, `datasets`, `spacy`, or `setfit` needed for upcoming research experiments, or should `research/proximity_validation/` stick strictly to `numpy`, `scipy`, `scikit-learn`, and stdlib (already available)?
