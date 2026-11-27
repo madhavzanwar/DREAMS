@@ -46,6 +46,11 @@ The core data flow, from user interaction to backend storage, is as follows:
 - Stores structured results in the database.
 [View Source](../app/ingestion/routes.py)
 
+#### Place-Emotion Analytics API (`GET /api/analytics/place-emotion/<user_id>`)
+- Requires a logged-in session (`302` to `/auth/login` when unauthenticated) and validates `user_id` (`400` on invalid format, `404` when the user has no posts).
+- Converts stored posts with location metadata and CHIME scores (falling back to the top CHIME label for older posts) via `posts_to_place_visits()`.
+- Returns `visit_count`, per-place `place_signatures` (mean CHIME vector, dominant dimension, volatility, and trajectory trend), and `recovery_anchors` computed by `place_emotion_signature` and `proximity_trajectory`.
+
 Frameworks Used:
 - Flask (API routing)
 - Python (core logic)
