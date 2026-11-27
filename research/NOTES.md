@@ -35,6 +35,13 @@ Validate whether multi-dimensional place proximity predicts emotional similarity
     - `tests/test_fl_bookkeeping.py::test_stale_claims_are_released_even_in_a_negative_utc_offset` (`tzset is not available on this platform` on Windows).
   - Note: Running tests generates an untracked `data/` directory at repo root; delete it before committing so generated data is never committed.
 - Wrote `research/PROXIMITY_MAP.md` covering sections `(a)`–`(e)` with file/line citations and no proposed solutions.
+- Created baseline reproduction script (`research/proximity_validation/baseline.py`, plus package markers `research/__init__.py` and `research/proximity_validation/__init__.py`) and deterministic unit tests (`tests/research_proximity/test_baseline.py`).
+- Ran `python research/proximity_validation/baseline.py` on 12 hand-written places (Anchorage, Seattle, Lisbon) and 14 CHIME visits across 5 place types (`cafe`, `church`, `clinic`, `hospital`, `park`), saving output to `research/results/baseline_output.txt`:
+  - Example A (`anc_church_recovery` vs `lis_church_se`, `8351.00 km`): `geo=0.000`, `cat=1.000`, `ling=0.000`, `cult=0.200`, `composite_default=0.430` (`geo_only=0.000`, `category_only=1.000`).
+  - Example B (`anc_church_recovery` vs `anc_clinic_north`, `0.37 km`): `geo=0.998`, `cat=0.000`, `ling=1.000`, `cult=0.500`, `composite_default=0.524` (`geo_only=0.998`, `category_only=0.000`).
+  - Example C (`anc_church_recovery` vs `sea_church_grief`): type pooling assigns both identical signatures (`visits=6`, `Hope=0.533`, `Connectedness=0.550`, `volatility=0.261`, `chime_proximity=1.000`) and prevents `'church'` from appearing in `detect_recovery_anchors(threshold=0.6)`, hiding actual per-place divergence (`anc_church_recovery` Hope `0.867` / volatility `0.035` vs `sea_church_grief` Hope `0.200` / volatility `0.041`, per-place `chime_proximity=0.890`).
+  - Minor existing edge behavior observed: `chime_proximity(sig, sig)` for the pooled `'church'` vector returned `1.0000000000000002` (unclamped cosine similarity in `place_emotion_signature.py`), so `tests/research_proximity/test_baseline.py` compares with `pytest.approx(1.0)`.
+- Formatted with `black research/ tests/research_proximity/`, verified `flake8 research/ tests/research_proximity/ --count --max-complexity=10 --max-line-length=127 --statistics` returned `0`, and verified `pytest tests/research_proximity/test_baseline.py -v` -> **`5 passed in 0.16s`**.
 
 ## Open Questions
 - Are `wordcloud`, `datasets`, `spacy`, or `setfit` needed for upcoming research experiments, or should `research/proximity_validation/` stick strictly to `numpy`, `scipy`, `scikit-learn`, and stdlib (already available)?

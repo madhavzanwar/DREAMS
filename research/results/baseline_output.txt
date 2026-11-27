@@ -1,0 +1,79 @@
+=== DREAMS BASELINE PROXIMITY & SIGNATURE REPORT ===
+Places: 12 | Visits: 14 | Place Types: 5
+
+1. Pairwise composite_proximity (default weights {'geo':0.3,'cat':0.4,'ling':0.15,'cult':0.15})
+           anc_churc anc_clini anc_park_ anc_cafe_ sea_churc sea_hospi sea_park_ sea_cafe_ lis_churc lis_hospi lis_park_ lis_cafe_
+anc_churc      1.000     0.524     0.480     0.479     0.580     0.150     0.150     0.150     0.430     0.000     0.000     0.000
+anc_clini      0.524     1.000     0.480     0.479     0.150     0.380     0.150     0.150     0.000     0.230     0.000     0.000
+anc_park_      0.480     0.480     1.000     0.479     0.150     0.150     0.625     0.150     0.000     0.030     0.475     0.000
+anc_cafe_      0.479     0.479     0.479     1.000     0.150     0.150     0.150     0.625     0.000     0.000     0.000     0.430
+sea_churc      0.580     0.150     0.150     0.150     1.000     0.479     0.478     0.479     0.430     0.000     0.000     0.000
+sea_hospi      0.150     0.380     0.150     0.150     0.479     1.000     0.477     0.478     0.000     0.430     0.000     0.000
+sea_park_      0.150     0.150     0.625     0.150     0.478     0.477     1.000     0.479     0.000     0.030     0.475     0.000
+sea_cafe_      0.150     0.150     0.150     0.625     0.479     0.478     0.479     1.000     0.000     0.000     0.000     0.430
+lis_churc      0.430     0.000     0.000     0.000     0.430     0.000     0.000     0.000     1.000     0.478     0.475     0.478
+lis_hospi      0.000     0.230     0.030     0.000     0.000     0.430     0.030     0.000     0.478     1.000     0.522     0.478
+lis_park_      0.000     0.000     0.475     0.000     0.000     0.000     0.475     0.000     0.475     0.522     1.000     0.476
+lis_cafe_      0.000     0.000     0.000     0.430     0.000     0.000     0.000     0.430     0.478     0.478     0.476     1.000
+
+2a. Pairwise composite_proximity (geography only: {'geo':1,'cat':0,'ling':0,'cult':0})
+           anc_churc anc_clini anc_park_ anc_cafe_ sea_churc sea_hospi sea_park_ sea_cafe_ lis_churc lis_hospi lis_park_ lis_cafe_
+anc_churc      1.000     0.998     0.998     0.996     0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.000
+anc_clini      0.998     1.000     0.999     0.997     0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.000
+anc_park_      0.998     0.999     1.000     0.998     0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.000
+anc_cafe_      0.996     0.997     0.998     1.000     0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.000
+sea_churc      0.000     0.000     0.000     0.000     1.000     0.998     0.993     0.996     0.000     0.000     0.000     0.000
+sea_hospi      0.000     0.000     0.000     0.000     0.998     1.000     0.991     0.994     0.000     0.000     0.000     0.000
+sea_park_      0.000     0.000     0.000     0.000     0.993     0.991     1.000     0.997     0.000     0.000     0.000     0.000
+sea_cafe_      0.000     0.000     0.000     0.000     0.996     0.994     0.997     1.000     0.000     0.000     0.000     0.000
+lis_churc      0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.000     1.000     0.994     0.984     0.995
+lis_hospi      0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.994     1.000     0.989     0.995
+lis_park_      0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.984     0.989     1.000     0.987
+lis_cafe_      0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.995     0.995     0.987     1.000
+
+2b. Pairwise composite_proximity (category only: {'geo':0,'cat':1,'ling':0,'cult':0})
+           anc_churc anc_clini anc_park_ anc_cafe_ sea_churc sea_hospi sea_park_ sea_cafe_ lis_churc lis_hospi lis_park_ lis_cafe_
+anc_churc      1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000
+anc_clini      0.000     1.000     0.000     0.000     0.000     0.500     0.000     0.000     0.000     0.500     0.000     0.000
+anc_park_      0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000
+anc_cafe_      0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000
+sea_churc      1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000
+sea_hospi      0.000     0.500     0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000     0.000
+sea_park_      0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000
+sea_cafe_      0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000
+lis_churc      1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000
+lis_hospi      0.000     0.500     0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000     0.000
+lis_park_      0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000
+lis_cafe_      0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000     0.000     0.000     0.000     1.000
+
+3. Type-Level PlaceEmotionSignature Summary
+  cafe (place_type=cafe, visits=2, volatility=0.025): [Conn=0.775, Hope=0.675, Iden=0.625, Mean=0.575, Empo=0.625]
+  church (place_type=church, visits=6, volatility=0.261): [Conn=0.550, Hope=0.533, Iden=0.517, Mean=0.750, Empo=0.475]
+  clinic (place_type=clinic, visits=2, volatility=0.025): [Conn=0.575, Hope=0.725, Iden=0.475, Mean=0.525, Empo=0.675]
+  hospital (place_type=hospital, visits=2, volatility=0.025): [Conn=0.325, Hope=0.425, Iden=0.275, Mean=0.375, Empo=0.325]
+  park (place_type=park, visits=2, volatility=0.021): [Conn=0.675, Hope=0.775, Iden=0.625, Mean=0.710, Empo=0.765]
+  Recovery anchors (type-level, threshold=0.6): [('park', 0.7587434628533627, 'Hope'), ('cafe', 0.755625, 'Connectedness'), ('clinic', 0.7068749999999999, 'Hope')]
+  Type-lookup check for two different churches:
+    anc_church_recovery -> (place_type=church, visits=6, volatility=0.261): [Conn=0.550, Hope=0.533, Iden=0.517, Mean=0.750, Empo=0.475]
+    sea_church_grief    -> (place_type=church, visits=6, volatility=0.261): [Conn=0.550, Hope=0.533, Iden=0.517, Mean=0.750, Empo=0.475]
+    Identical type signature? True | chime_proximity=1.000
+
+4. Three Concrete Research-Gap Examples
+Example A: Far apart, same place type (high cat, near-zero geo):
+  anc_church_recovery (Anchorage, church) vs lis_church_se (Lisbon, church):
+    distance_km=8351.00 km -> geo=0.000, cat=1.000, ling=0.000, cult=0.200
+    composite_default=0.430 | geo_only=0.000 | category_only=1.000
+
+Example B: Nearby in the same city, different place types (high geo, zero cat):
+  anc_church_recovery (Anchorage, church) vs anc_clinic_north (Anchorage, clinic):
+    distance_km=0.37 km -> geo=0.998, cat=0.000, ling=1.000, cult=0.500
+    composite_default=0.524 | geo_only=0.998 | category_only=0.000
+
+Example C: Type-level signature hides place-specific emotional divergence:
+  Assigned by current type-level model (both return identical signature):
+    anc_church_recovery (place_type=church, visits=6, volatility=0.261): [Conn=0.550, Hope=0.533, Iden=0.517, Mean=0.750, Empo=0.475]
+    sea_church_grief    (place_type=church, visits=6, volatility=0.261): [Conn=0.550, Hope=0.533, Iden=0.517, Mean=0.750, Empo=0.475]
+  Actual per-place visit profiles pooled into church:
+    anc_church_recovery (actual) (place_type=anc_church_recovery, visits=3, volatility=0.035): [Conn=0.850, Hope=0.867, Iden=0.733, Mean=0.850, Empo=0.750]
+    sea_church_grief    (actual) (place_type=sea_church_grief, visits=3, volatility=0.041): [Conn=0.250, Hope=0.200, Iden=0.300, Mean=0.650, Empo=0.200]
+  Actual per-place chime_proximity(anc_church_recovery, sea_church_grief) = 0.890 (vs 1.000 under type pooling)
