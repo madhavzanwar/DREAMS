@@ -13,7 +13,41 @@ Validate whether multi-dimensional place proximity predicts emotional similarity
 - `dreams_app/core/extra/place_emotion_signature.py`: `build_place_signature(place_type, chime_results)` aggregates CHIME vectors (`Connectedness`, `Hope`, `Identity`, `Meaning`, `Empowerment`) keyed only by `place_type`; `chime_proximity` computes cosine similarity between two `PlaceEmotionSignature` vectors.
 - `dreams_app/core/extra/location_extractor.py`: `reverse_geocode` extracts `display_name`, `place_category` (OSM `type`), `place_type` (OSM `category`), and `address`; `format_location_text` strips city/state/country before 384-dim `all-MiniLM-L6-v2` embedding.
 
-## Commands Run
+## Dated Research Log
+
+> **Honesty note on timeframe:** Existing repository history shows prior upstream contributions (`#347`, `#349`, `#351`) merged on **2026-11-26** and maintainer discussion `#285` on **2026-11-27**, followed by the branch base `cf19c15` (`2026-11-26 21:59:06 -0900` / `2026-11-27 11:29 +0530`). **All research prototype implementation, evaluation, review, and documentation on `research/proximity-validation` took place in one continuous session on 2026-11-28 (`03:55`–`04:30+ +0530`)** rather than across a multi-day week of separate coding sessions.
+
+### Session 0 — Upstream Predecessors (2026-11-26 to 2026-11-27, verified in `upstream/main` & `#285`)
+- **What was worked on:** Upstream bugfix PRs (`#347`, `#349`, `#351` merged `2026-11-26 16:40–16:42 -0900`), latest upstream commit `cf19c15` (`2026-11-26 21:59:06 -0900`), and review of `KathiraveluLab/DREAMS` discussions (`#71`, `#273`, `#285`, `#294`).
+- **Key context:** Maintainer clarified on `2026-11-27` (`#285`) that DREAMS has a research component beyond current source code and that proximity (`#71`) must distinguish "this particular church" from "any churches".
+
+### Session 1 — Code Audit, Map & Baseline Suite Check (`2026-11-28 03:55–04:00 +0530`, commits `94a013c`, `d368de0`)
+- **Worked on:** Created branch `research/proximity-validation` from `upstream/main` (`cf19c15`), audited all proximity/graph modules and docs (`PROXIMITY_MAP.md`), tested `location_proximity/demo.py` (missing from git history: `[Errno 2]`), and ran the existing pytest suite (`511 passed, 3 skipped`).
+- **Findings / limitations:** `composite_proximity`, `chime_proximity`, and `build_place_trajectories` are not called outside `core/extra/` and `place_narrative_bridge.py`; `PlaceVisit` (`proximity_trajectory.py` L14–26) lacks `place_id`; `CATEGORY_RELATIONSHIPS` holds only 3 pairs.
+
+### Session 2 — Baseline Reproduction (`2026-11-28 04:00–04:05 +0530`, commit `fe6c2dd`)
+- **Implemented:** `research/proximity_validation/baseline.py`, `tests/research_proximity/test_baseline.py` (`5 passed in 0.16s`), and `research/results/baseline_output.txt` on 12 places across Anchorage, Seattle, and Lisbon.
+- **Findings / limitations:** Pooled `church` signatures (`Hope=0.533`, `volatility=0.261`) collapsed distinct places (`anc_church_recovery` `Hope=0.867` vs `sea_church_grief` `Hope=0.200`) and excluded `church` from `detect_recovery_anchors(threshold=0.6)`; also observed float64 `1.0000000000000002` in existing `chime_proximity`.
+
+### Session 3 — Deterministic Synthetic Generator (`2026-11-28 04:05–04:07 +0530`, commit `b941245`)
+- **Implemented:** `research/proximity_validation/generate.py`, `tests/research_proximity/test_generate.py` (`8` new tests; `13 passed in 0.35s`), and initial `## Synthetic data` section in `research/proximity_validation/README.md`.
+- **Findings / limitations:** Default 60 places / ~348 visits generate in `~0.0131s`; synthetic data can only test recovery of planted parametric effects and says nothing about real recovery journeys.
+
+### Session 4 — Multi-Dimensional Proximity Measures (`2026-11-28 04:07–04:09 +0530`, commit `c16e7c5`)
+- **Implemented:** `research/proximity_validation/distances.py` (`geographic_proximity`, Wu-Palmer `category_tree_similarity`, `semantic_name_similarity` with TF-IDF fallback, `linguistic_proximity`, `cultural_proximity`, renormalizing `composite_similarity`, `pairwise_matrix`) and 12 tests (`25 passed in 0.42s`).
+- **Findings / limitations:** Fixed initial divergence vs repo `composite_proximity` (matches exactly across 6 test pairs with `REPO_DEFAULT_WEIGHTS`); offline tests use char 3-gram TF-IDF instead of `all-MiniLM-L6-v2`.
+
+### Session 5 — Evaluation Pipeline & Grid Sweep (`2026-11-28 04:09–04:19 +0530`, commit `70a5e5c`)
+- **Implemented:** `research/proximity_validation/evaluate.py`, `run_experiments.py` (`135` runs across `{0, 0.5, 1}` grids × `5` seeds -> `experiments.csv`, `summary.md`), and 10 tests (`35 passed in 2.47s`).
+- **Findings / limitations:** Resolved leave-place-out pooled Spearman intercept anti-correlation (`null_mean = -0.16..-0.28`) by computing per-fold Spearman (`mean_fold_spearman`, `null_mean ≈ 0.0`).
+
+### Session 6 — Independent Review, Bug Fixes, Docs & Share Drafts (`2026-11-28 04:19–04:30+ +0530`, commits `3663e7d`, `ed8c9da`, `905ca54`, and this log update)
+- **Investigated & fixed:** Identified and fixed cross-place corpus-IDF leakage in `_semantic_name_matrix`, string coercion in `cultural_tags`, sentinel `p_value=1.0` for untested M5 permutations, and missing `GeneratorConfig` / test assertions (`REVIEW.md`, `38` research tests passing, regenerated `experiments.csv`/`summary.md` + `RESULTS.md`, `README.md`, `PROPOSAL_NOTES.md`, `SHARE_DRAFTS.md`).
+- **Verification & remaining limits:** Full suite `pytest --ignore=tests/test_places365_classifier.py` passed (`549 passed, 3 skipped`); all results remain synthetic, templated names leak category nouns into `semantic_name`, fold-bootstrap ignores LPO fold covariance, and unadjusted ANOVA allocates ~`0.04–0.08` variance to `place|type` at `place_strength=0.0`.
+
+---
+
+## Commands Run (Detailed Artifact Log)
 - `git fetch upstream && git checkout -b research/proximity-validation upstream/main` (at `cf19c15`).
 - Read docs and modules for Task 1:
   - `README.md`, `SETUP.md`, `ARCHITECTURE.md`, `LOCATION_PROXIMITY_SUMMARY.md`, `location_proximity/README.md`, `location_proximity/RESEARCH.md`
@@ -83,6 +117,7 @@ Validate whether multi-dimensional place proximity predicts emotional similarity
 - Wrote maintainer communication drafts, three one-line questions, and five skeptical-mentor weaknesses in `research/SHARE_DRAFTS.md` (not posted anywhere).
 
 ## Open Questions
-- Are `wordcloud`, `datasets`, `spacy`, or `setfit` needed for upcoming research experiments, or should `research/proximity_validation/` stick strictly to `numpy`, `scipy`, `scikit-learn`, and stdlib (already available)?
-- What synthetic/benchmark dataset schema and evaluation protocol should be implemented first under `research/proximity_validation/`?
-- What baseline statistical / optimization methods (`scipy`, `scikit-learn`) should be used for weight learning and place-vs-type variance decomposition?
+- Does any anonymized, consented, or simulated real-world location + CHIME sample dataset exist in KathiraveluLab for non-synthetic validation (pending IRB approval)?
+- How does `semantic_name` behave using cached `all-MiniLM-L6-v2` embeddings on noisy real OSM/venue names where category nouns are not consistently present?
+- What privacy-preserving `place_id` clustering boundary and neighborhood geographic decay scale (`max_distance_km` < `500.0`) should replace the baseline defaults in `dreams_app`?
+- Should learned composite proximity weights be population-wide or user-specific inside DREAMS analytics?
