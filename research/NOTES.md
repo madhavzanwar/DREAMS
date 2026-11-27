@@ -56,6 +56,23 @@ Validate whether multi-dimensional place proximity predicts emotional similarity
   - `linguistic_proximity` & `cultural_proximity`: reuse `linguistic_similarity` and `cultural_similarity` from `dreams_app.core.extra.proximity_calculator`.
   - `composite_similarity`: combines any subset of dimensions and renormalizes over active dimensions identically to `composite_proximity` (reproduced exactly across 6 pairs under `REPO_DEFAULT_WEIGHTS`).
 - Added 12 deterministic tests in `tests/research_proximity/test_distances.py` (using `backend='tfidf'` / fallback), formatted with `black`, verified `flake8` returned `0`, and ran `pytest tests/research_proximity/ -v` -> **`25 passed in 0.42s`** (`12` in `test_distances.py`, `8` in `test_generate.py`, `5` in `test_baseline.py`).
+- Implemented evaluation pipeline (`research/proximity_validation/evaluate.py`):
+  - Aggregates CHIME profiles per `place_id` (`min_visits=5`) via `build_place_signature` and measures emotional distance via `scipy.spatial.distance.jensenshannon(..., base=2.0)`.
+  - Evaluates models `M0` (geo), `M1` (category_tree Wu-Palmer), `M2` (semantic_name), `M3` (repo default composite), `M4` (Ridge on standardized features), and `M5` (NNLS with centered target intercept) under strict leave-place-out CV (`iter_leave_place_out_splits`), aggregating Spearman across held-out-place folds to avoid leave-one-out intercept anti-correlation, plus pooled OOF $R^2$, leave-one-feature-out ablations, place-profile permutation nulls (`n_permutations`), place-level bootstrap 95% CIs, and nested visit-level CHIME ANOVA (`group`, `type|group`, `place|type`, `residual`).
+  - Default single-run check (`GeneratorConfig()`, `seed=42`, `min_visits=5`, `n_permutations=500`, `n_bootstrap=200`, `semantic_backend='tfidf'`): completed in **`2.173s`** (`44` eligible places, `946` pairs):
+    - `M0`: Spearman `-0.018` (CI `[-0.079, 0.035]`, `p=0.6467`, `null=-0.000`)
+    - `M1`: Spearman `0.279` (CI `[0.218, 0.345]`, `p=0.0020`, `null=-0.000`)
+    - `M2`: Spearman `0.104` (CI `[0.053, 0.150]`, `p=0.0020`, `null=0.002`)
+    - `M3`: Spearman `0.056` (CI `[-0.003, 0.104]`, `p=0.0838`, `null=-0.000`)
+    - `M4`: Spearman `0.162` (CI `[0.107, 0.218]`, `R^2=0.069`, `p=0.0020`, `null=0.016`), weights `geo=0.0015, category_tree=0.0518, semantic_name=0.0011, ling=-0.0039, cult=0.0058`
+    - `M5`: Spearman `0.205` (CI `[0.146, 0.268]`, `R^2=0.073`, `p=0.0020`, `null=0.006`), weights `geo=0.0, category_tree=0.0517, semantic_name=0.0013, ling=0.0, cult=0.0058`
+    - Ablation `delta_spearman` from `M4`: dropping `category_tree` drops Spearman by `-0.0814` (vs `+0.0134` geo, `+0.0203` semantic_name, `+0.0066` ling, `-0.0023` cult).
+    - Nested ANOVA on `seed=42`: `group=0.252`, `type|group=0.322` (`type_total=0.575`), `place|type=0.269`, `residual=0.156` (planted: `group=0.244`, `category=0.382`, `place=0.244`, `residual=0.130`).
+- Implemented sweep script (`research/proximity_validation/run_experiments.py`) across `geo_category_correlation` in `{0, 0.5, 1}`, `category_strength` in `{0, 0.5, 1}`, `place_strength` in `{0, 0.5, 1}` with `5` seeds (`135` runs, `n_permutations=200`, `n_bootstrap=100`, `semantic_backend='tfidf'`), writing `research/results/experiments.csv` and `research/results/summary.md` in **`53.1s`**:
+  - Unconfounded (`geo_corr=0.0, cat_str=1.0, place_str=0.0`): mean `M1=0.316` vs `M0=-0.030`, `M4=0.212` (`R^2=0.192`), `M5=0.225`.
+  - Confounded (`geo_corr=1.0, cat_str=1.0, place_str=0.0`): `M0` rises to `0.062` (spatial confounding), `M1=0.374`, `M4=0.306` (`R^2=0.244`).
+  - Place-specific divergence (`cat_str=1.0`): raising `place_str` from `0.0` to `1.0` increases `Var(Place|Type)` from `0.036` to `0.323` and drops mean `M1` Spearman from `0.343` to `0.201`.
+- Added 10 deterministic tests in `tests/research_proximity/test_evaluate.py`; formatted with `black`, `flake8` returned `0`, and `pytest tests/research_proximity/ -v` -> **`35 passed in 2.47s`**.
 
 ## Open Questions
 - Are `wordcloud`, `datasets`, `spacy`, or `setfit` needed for upcoming research experiments, or should `research/proximity_validation/` stick strictly to `numpy`, `scipy`, `scikit-learn`, and stdlib (already available)?
