@@ -80,6 +80,7 @@ Validate whether multi-dimensional place proximity predicts emotional similarity
   - Regenerated `research/results/experiments.csv` and `research/results/summary.md` (`135` runs in `54.62s`); verified `seed=42` 500-permutation default run (`2.519s`, `M1=0.279`, `M2=0.097`, `M4=0.165`, `M5=0.214`).
 - Wrote `research/proximity_validation/README.md`, `research/RESULTS.md`, and `research/PROPOSAL_NOTES.md`.
 - Verified `black --check research/ tests/research_proximity/` (`11 files would be left unchanged`), `flake8` (`0` issues), and full suite `pytest --ignore=tests/test_places365_classifier.py -v --tb=short` (with `HF_HUB_OFFLINE=1`): **`549 passed, 3 skipped, 1 warning in 87.62s`** (cleaned up generated `data/`).
+- Wrote maintainer communication drafts, three one-line questions, and five skeptical-mentor weaknesses in `research/SHARE_DRAFTS.md` (not posted anywhere).
 
 ## Open Questions
 - Are `wordcloud`, `datasets`, `spacy`, or `setfit` needed for upcoming research experiments, or should `research/proximity_validation/` stick strictly to `numpy`, `scipy`, `scikit-learn`, and stdlib (already available)?
