@@ -73,6 +73,13 @@ Validate whether multi-dimensional place proximity predicts emotional similarity
   - Confounded (`geo_corr=1.0, cat_str=1.0, place_str=0.0`): `M0` rises to `0.062` (spatial confounding), `M1=0.374`, `M4=0.306` (`R^2=0.244`).
   - Place-specific divergence (`cat_str=1.0`): raising `place_str` from `0.0` to `1.0` increases `Var(Place|Type)` from `0.036` to `0.323` and drops mean `M1` Spearman from `0.343` to `0.201`.
 - Added 10 deterministic tests in `tests/research_proximity/test_evaluate.py`; formatted with `black`, `flake8` returned `0`, and `pytest tests/research_proximity/ -v` -> **`35 passed in 2.47s`**.
+- Completed independent review (`research/REVIEW.md`) and fixed bugs + added regression tests:
+  - Fixed `distances.py::_semantic_name_matrix` so `pairwise_matrix(..., 'semantic_name', semantic_backend='tfidf')` uses exact vectorized 2-doc char-3-gram TF-IDF cosine (`max_diff=0.00e+00` vs pairwise `semantic_name_similarity`, zero cross-place IDF leakage), plus validated non-string `cultural_tags` in `_dimension_score`.
+  - Typed `ModelMetrics.p_value`, `null_mean`, `null_sd` in `evaluate.py` as `Optional[float]` (`None` when permutation testing is skipped via `permutation_include_m5=False`).
+  - Added `city_spread_deg >= 0` and `horizon_days >= 1` validation in `generate.py`, plus regression tests across `test_baseline.py`, `test_generate.py`, `test_distances.py`, and `test_evaluate.py` (`38 passed in 2.62s` on `tests/research_proximity/`).
+  - Regenerated `research/results/experiments.csv` and `research/results/summary.md` (`135` runs in `54.62s`); verified `seed=42` 500-permutation default run (`2.519s`, `M1=0.279`, `M2=0.097`, `M4=0.165`, `M5=0.214`).
+- Wrote `research/proximity_validation/README.md`, `research/RESULTS.md`, and `research/PROPOSAL_NOTES.md`.
+- Verified `black --check research/ tests/research_proximity/` (`11 files would be left unchanged`), `flake8` (`0` issues), and full suite `pytest --ignore=tests/test_places365_classifier.py -v --tb=short` (with `HF_HUB_OFFLINE=1`): **`549 passed, 3 skipped, 1 warning in 87.62s`** (cleaned up generated `data/`).
 
 ## Open Questions
 - Are `wordcloud`, `datasets`, `spacy`, or `setfit` needed for upcoming research experiments, or should `research/proximity_validation/` stick strictly to `numpy`, `scipy`, `scikit-learn`, and stdlib (already available)?

@@ -147,6 +147,49 @@ def test_strength_parameters_drive_between_type_and_between_place_variance():
     var_strong = _mean_between_type_variance(generate_dataset(cfg_strong_cat, seed=5))
     assert var_strong > 5.0 * var_null
 
+    def _mean_within_type_between_place_variance(ds) -> float:
+        by_type = {}
+        for visit in ds.visits:
+            by_type.setdefault(visit.place_type, {}).setdefault(
+                visit.place_id, []
+            ).append([visit.chime[d] for d in CHIME_DIMENSIONS])
+        variances = []
+        for by_place in by_type.values():
+            if len(by_place) >= 2:
+                place_means = np.array(
+                    [np.mean(rows, axis=0) for rows in by_place.values()]
+                )
+                variances.append(float(np.mean(np.var(place_means, axis=0))))
+        return float(np.mean(variances))
+
+    cfg_strong_place = GeneratorConfig(
+        n_places=30,
+        n_users=40,
+        mean_visits_per_user=12.0,
+        category_strength=1.0,
+        group_strength=0.0,
+        place_strength=2.5,
+        user_strength=0.0,
+        noise_sd=0.25,
+    )
+    cfg_zero_place = GeneratorConfig(
+        n_places=30,
+        n_users=40,
+        mean_visits_per_user=12.0,
+        category_strength=1.0,
+        group_strength=0.0,
+        place_strength=0.0,
+        user_strength=0.0,
+        noise_sd=0.25,
+    )
+    var_place_zero = _mean_within_type_between_place_variance(
+        generate_dataset(cfg_zero_place, seed=5)
+    )
+    var_place_strong = _mean_within_type_between_place_variance(
+        generate_dataset(cfg_strong_place, seed=5)
+    )
+    assert var_place_strong > 3.0 * var_place_zero
+
 
 def test_export_to_repo_place_visits_and_signatures():
     ds = generate_dataset(GeneratorConfig(), seed=21)

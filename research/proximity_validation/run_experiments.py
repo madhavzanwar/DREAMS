@@ -275,17 +275,20 @@ def format_summary_markdown(rows: Sequence[Dict[str, object]]) -> str:
             "### Informative Findings (Non-Trivial Behavior Beyond Planted Strengths)",
             "1. **Type-level `M1` degrades rapidly when places have distinct identities (`place_strength=1.0`):** "
             + (
-                f"At `cat_str=1.0`, raising `place_str` from `0.0` to `1.0` drops `M1` Spearman from "
+                f"At `cat_str=1.0` (averaged across `geo_corr` in `{{0.0, 0.5, 1.0}}`), "
+                f"raising `place_str` from `0.0` to `1.0` drops `M1` Spearman from "
                 f"`{_group_mean(low_place, 'm1_spearman'):.3f}` to "
                 f"`{_group_mean(high_place, 'm1_spearman'):.3f}`, "
                 "quantifying how severely type-level pooling fails when specific places diverge emotionally."
                 if high_place and low_place
                 else ""
             ),
-            "2. **Learned `M4` vs. repo hand-weighted `M3`:** Fixed repo weights "
-            "(`geo=0.3, cat=0.4, ling=0.15, cult=0.15`) dilute categorical signal with geographic "
-            "and linguistic noise when `geo_corr=0`, whereas leave-place-out Ridge (`M4`) "
-            "and NNLS (`M5`) down-weight non-predictive dimensions without overfitting.",
+            "2. **Learned `M4`/`M5` vs. repo `M3` and single-feature `M1`:** Fixed repo weights "
+            "(`geo=0.3, cat=0.4, ling=0.15, cult=0.15`) dilute categorical signal with non-predictive "
+            "dimensions when `geo_corr=0`. Leave-place-out Ridge (`M4`) and NNLS (`M5`) strongly outperform "
+            "`M3` by down-weighting uninformative dimensions, though they still trail oracle "
+            "single-feature `M1` due to finite-sample weight variance across five features "
+            "(including category nouns leaked into `semantic_name`).",
             "3. **Parent-group baseline signal:** Even when `category_strength=0.0`, default "
             "`group_strength=0.8` keeps `M1` (taxonomy Wu-Palmer) predictive because places "
             "within the same parent group (`religious`, `healthcare`, etc.) still share latent CHIME effects.",

@@ -170,8 +170,28 @@ def test_zero_effect_strengths_do_not_beat_permutation_null():
         semantic_backend="tfidf",
         seed=19,
     )
-    for model_name in ("M0", "M1", "M2", "M4"):
-        assert res.models[model_name].p_value > 0.05
+    for model_name in ("M0", "M1", "M2", "M4", "M5"):
+        metric = res.models[model_name]
+        assert metric.p_value is not None and metric.p_value > 0.05
+        assert metric.null_mean is not None and abs(metric.null_mean) < 0.08
+
+
+def test_skipped_m5_permutation_sets_none_instead_of_fake_p_value():
+    cfg = GeneratorConfig(n_places=24, n_users=25, mean_visits_per_user=10.0)
+    ds = generate_dataset(cfg, seed=8)
+    res = evaluate_dataset(
+        ds,
+        min_visits=5,
+        n_permutations=20,
+        n_bootstrap=20,
+        semantic_backend="tfidf",
+        seed=8,
+        include_m5=True,
+        permutation_include_m5=False,
+    )
+    assert res.models["M4"].p_value is not None
+    assert res.models["M5"].p_value is None
+    assert res.models["M5"].null_mean is None
 
 
 def test_variance_shares_sum_to_one_and_track_place_strength():

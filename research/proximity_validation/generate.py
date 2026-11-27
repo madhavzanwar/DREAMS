@@ -193,6 +193,10 @@ class GeneratorConfig:
             raise ValueError("geo_category_correlation must be in [0, 1]")
         if self.noise_sd < 0.0:
             raise ValueError("noise_sd must be non-negative")
+        if self.city_spread_deg < 0.0:
+            raise ValueError("city_spread_deg must be non-negative")
+        if self.horizon_days < 1:
+            raise ValueError("horizon_days must be at least 1")
 
 
 @dataclass(frozen=True)

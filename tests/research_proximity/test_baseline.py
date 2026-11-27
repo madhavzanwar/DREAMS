@@ -24,6 +24,9 @@ def test_matrices_are_symmetric():
         matrix = compute_proximity_matrix(places, weights=weights)
         assert matrix.shape == (len(places), len(places))
         assert np.allclose(matrix, matrix.T)
+    mat_default = compute_proximity_matrix(places)
+    # Spot-check Example A (anc_church_recovery vs lis_church_se) != 1.0 or 0.0
+    assert 0.4 < mat_default[0, 8] < 0.5
 
 
 def test_matrix_diagonals_equal_one():

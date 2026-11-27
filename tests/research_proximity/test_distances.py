@@ -264,3 +264,27 @@ def test_semantic_auto_fallback_handles_missing_package(monkeypatch):
         backend="tfidf",
     )
     assert sim == pytest.approx(sim_tfidf)
+
+
+def test_semantic_matrix_matches_pairwise_and_composite_weights():
+    places = _sample_places()
+    mat_sem = pairwise_matrix(
+        places, dimension="semantic_name", semantic_backend="tfidf"
+    )
+    mat_comp = pairwise_matrix(
+        places,
+        dimension="composite",
+        weights={"semantic_name": 1.0},
+        semantic_backend="tfidf",
+    )
+    assert np.allclose(mat_sem, mat_comp, atol=1e-12)
+    for i in range(len(places)):
+        for j in range(i + 1, len(places)):
+            pair = semantic_name_similarity(places[i], places[j], backend="tfidf")
+            assert mat_sem[i, j] == pytest.approx(pair, abs=1e-12)
+
+
+def test_composite_rejects_string_cultural_tags():
+    valid = _sample_places()[0]
+    with pytest.raises(ValueError, match="cultural_tags"):
+        composite_similarity({**valid, "cultural_tags": "christian"}, valid)

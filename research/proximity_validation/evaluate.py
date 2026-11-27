@@ -49,9 +49,9 @@ class ModelMetrics:
     r2: Optional[float]
     ci_low: float
     ci_high: float
-    p_value: float
-    null_mean: float
-    null_sd: float
+    p_value: Optional[float]
+    null_mean: Optional[float]
+    null_sd: Optional[float]
 
 
 @dataclass(frozen=True)
@@ -573,7 +573,9 @@ def evaluate_dataset(
         rho = float(np.mean(fold_corrs[name]))
         null_arr = nulls.get(name)
         if null_arr is None:
-            p_val, null_mean, null_sd = 1.0, 0.0, 0.0
+            p_val: Optional[float] = None
+            null_mean: Optional[float] = None
+            null_sd: Optional[float] = None
         else:
             p_val = float((1 + np.sum(null_arr >= rho)) / (len(null_arr) + 1))
             null_mean = float(np.mean(null_arr))

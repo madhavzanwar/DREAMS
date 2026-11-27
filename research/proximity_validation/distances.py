@@ -7,7 +7,7 @@ import sys
 from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence
 
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
@@ -324,10 +324,13 @@ def _dimension_score(
         l1, l2 = _get_field(place1, "language"), _get_field(place2, "language")
         return linguistic_similarity(l1, l2) if (l1 and l2) else None
     if dim == "cult":
-        c1, c2 = _get_field(place1, "cultural_tags"), _get_field(
-            place2, "cultural_tags"
-        )
-        return cultural_similarity(list(c1), list(c2)) if (c1 and c2) else None
+        raw_c1 = _get_field(place1, "cultural_tags")
+        raw_c2 = _get_field(place2, "cultural_tags")
+        if raw_c1 is None or raw_c2 is None:
+            return None
+        tags1 = _extract_tags(place1, "place1")
+        tags2 = _extract_tags(place2, "place2")
+        return cultural_similarity(tags1, tags2) if (tags1 and tags2) else None
     raise ValueError(f"Unsupported dimension {dim!r}")
 
 
@@ -358,9 +361,46 @@ def composite_similarity(
     return _clamp_unit(combined)
 
 
+def _tfidf_pairwise_2doc_matrix(names: Sequence[str]) -> np.ndarray:
+    """Compute exact 2-document char-3-gram TF-IDF cosine matrix without corpus leakage."""
+    vectorizer = CountVectorizer(
+        analyzer="char_wb",
+        ngram_range=(3, 3),
+        lowercase=True,
+    )
+    counts = vectorizer.fit_transform(names).toarray().astype(float)
+    idf1 = math.log(3.0 / 2.0) + 1.0
+    idf1_sq = idf1 * idf1
+    dot = counts @ counts.T
+    present = (counts > 0).astype(float)
+    sq = counts * counts
+    norm_sq = sq @ (present.T + idf1_sq * (1.0 - present.T))
+    denom = np.sqrt(norm_sq * norm_sq.T)
+    mat = np.where(denom > 0.0, dot / np.maximum(denom, 1e-15), 0.0)
+    lower = np.char.lower(np.asarray(names, dtype=str))
+    same_lower = lower[:, None] == lower[None, :]
+    mat = np.where(same_lower, 1.0, np.clip(mat, 0.0, 1.0))
+    np.fill_diagonal(mat, 1.0)
+    return 0.5 * (mat + mat.T)
+
+
 def _semantic_name_matrix(places: Sequence[Any], backend: str) -> np.ndarray:
+    if backend not in VALID_SEMANTIC_BACKENDS:
+        raise ValueError(
+            f"backend must be one of {VALID_SEMANTIC_BACKENDS}, got {backend!r}"
+        )
     names = [_validate_name(p, f"places[{idx}]") for idx, p in enumerate(places)]
-    embeddings = _encode_names(names, backend=backend)
+    use_tfidf = backend == "tfidf"
+    if backend == "auto" and not _sentence_transformers_available():
+        use_tfidf = True
+    if use_tfidf:
+        return _tfidf_pairwise_2doc_matrix(names)
+    try:
+        embeddings = _encode_names(names, backend=backend)
+    except Exception:
+        if backend == "auto":
+            return _tfidf_pairwise_2doc_matrix(names)
+        raise
     norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
     safe_norms = np.where(norms == 0.0, 1.0, norms)
     normalized = embeddings / safe_norms
